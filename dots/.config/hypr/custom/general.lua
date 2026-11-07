@@ -18,6 +18,17 @@ hl.config({
         kb_layout = "de,us",
         kb_variant = ",altgr-intl",
     },
+    decoration = {
+        blur = {
+            xray = false,
+            size = 6,
+            passes = 3,
+            noise = 0.025,
+            contrast = 0.5,
+            vibrancy = 0.5,
+            vibrancy_darkness = 0.5,
+        },
+    },
 })
 
 hl.monitor({
