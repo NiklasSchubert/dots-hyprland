@@ -19,3 +19,10 @@ hl.config({
         kb_variant = ",altgr-intl",
     },
 })
+
+hl.monitor({
+    output = "",
+    mode = "preferred",
+    position = "auto",
+    scale = 2
+})
