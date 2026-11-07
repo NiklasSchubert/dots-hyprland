@@ -101,7 +101,7 @@ Scope {
                         }
                     }
 
-                    BarContent {
+                    NotchBarContent {
                         id: barContent
                         
                         implicitHeight: Appearance.sizes.barHeight
