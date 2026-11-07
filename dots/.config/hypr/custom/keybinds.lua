@@ -67,3 +67,27 @@ hl.unbind("SUPER + K")
 hl.bind("SUPER + K", hl.dsp.exec_cmd("hyprctl switchxkblayout all next"), {
     description = "Input: Switch keyboard layout",
 })
+
+-- Hyprland 0.57 delivers the Super release after every chord, toggling search; catchall is submap-only
+local superChordMods = {
+    "SUPER", "SUPER + SHIFT", "SUPER + CTRL", "SUPER + ALT",
+    "SUPER + CTRL + SHIFT", "SUPER + CTRL + ALT", "SUPER + SHIFT + ALT", "SUPER + CTRL + SHIFT + ALT",
+}
+local superChordKeys = {
+    "Tab", "Return", "Space", "Escape", "BackSpace", "Delete", "Left", "Right", "Up", "Down",
+    "Period", "Comma", "Slash", "Minus", "Equal", "Semicolon", "Apostrophe", "Grave",
+    "BracketLeft", "BracketRight", "Backslash", "Print", "Home", "End", "Page_Up", "Page_Down",
+}
+for c = string.byte("A"), string.byte("Z") do table.insert(superChordKeys, string.char(c)) end
+for d = 0, 9 do table.insert(superChordKeys, tostring(d)) end
+for f = 1, 12 do table.insert(superChordKeys, "F" .. f) end
+
+local interruptSearch = hl.dsp.global("quickshell:searchToggleReleaseInterrupt")
+for _, mods in ipairs(superChordMods) do
+    for _, key in ipairs(superChordKeys) do
+        hl.bind(mods .. " + " .. key, interruptSearch, { non_consuming = true })
+    end
+end
+for _, button in ipairs({ "mouse:272", "mouse:273", "mouse:274", "mouse:275", "mouse:276", "mouse:277", "mouse_up", "mouse_down" }) do
+    hl.bind("SUPER + " .. button, interruptSearch, { non_consuming = true })
+end
