@@ -14,4 +14,8 @@ hl.config({
     gestures = {
         workspace_swipe_invert = true,
     },
+    input = {
+        kb_layout = "de,us",
+        kb_variant = ",altgr-intl",
+    },
 })
