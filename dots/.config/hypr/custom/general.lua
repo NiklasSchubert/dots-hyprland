@@ -29,6 +29,20 @@ hl.config({
             vibrancy_darkness = 0.5,
         },
     },
+    misc = {
+        vrr = true,
+    },
+    render = {
+        direct_scanout = 1,
+    },
+    -- DCP has no cursor plane, so a visible cursor forces compositing
+    cursor = {
+        inactive_timeout = 3,
+        hide_on_key_press = true,
+    },
+    general = {
+        allow_tearing = false,
+    },
 })
 
 hl.monitor({
