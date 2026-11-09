@@ -108,7 +108,7 @@ VIDEO_OPTS="no-audio loop hwdec=auto scale=bilinear interpolation=no video-sync=
 
 is_video() {
     local extension="${1##*.}"
-    [[ "$extension" == "mp4" || "$extension" == "webm" || "$extension" == "mkv" || "$extension" == "avi" || "$extension" == "mov" ]] && return 0 || return 1
+    [[ "$extension" == "mp4" || "$extension" == "webm" || "$extension" == "mkv" || "$extension" == "avi" || "$extension" == "mov" || "$extension" == "gif" ]] && return 0 || return 1
 }
 
 kill_existing_mpvpaper() {
@@ -131,6 +131,18 @@ done
 EOF
     mv "$RESTORE_SCRIPT.tmp" "$RESTORE_SCRIPT"
     chmod +x "$RESTORE_SCRIPT"
+}
+
+# Yin decodes on the GPU and restores itself at login, so it needs no restore script.
+has_yin() {
+    command -v yinctl &> /dev/null
+}
+
+set_yin_wallpaper() {
+    yinctl --img "$1" || true
+    if command -v yin-sync-pause &> /dev/null; then
+        yin-sync-pause
+    fi
 }
 
 remove_restore() {
@@ -199,7 +211,7 @@ switch() {
             mkdir -p "$THUMBNAIL_DIR"
 
             missing_deps=()
-            if ! command -v mpvpaper &> /dev/null; then
+            if ! has_yin && ! command -v mpvpaper &> /dev/null; then
                 missing_deps+=("mpvpaper")
             fi
             if ! command -v ffmpeg &> /dev/null; then
@@ -228,11 +240,15 @@ switch() {
 
             # Set video wallpaper
             local video_path="$imgpath"
-            monitors=$(hyprctl monitors -j | jq -r '.[] | .name')
-            for monitor in $monitors; do
-                mpvpaper -o "$VIDEO_OPTS" "$monitor" "$video_path" &
-                sleep 0.1
-            done
+            if has_yin; then
+                set_yin_wallpaper "$video_path"
+            else
+                monitors=$(hyprctl monitors -j | jq -r '.[] | .name')
+                for monitor in $monitors; do
+                    mpvpaper -o "$VIDEO_OPTS" "$monitor" "$video_path" &
+                    sleep 0.1
+                done
+            fi
 
             # Extract first frame for color generation
             thumbnail="$THUMBNAIL_DIR/$(basename "$imgpath").jpg"
@@ -244,7 +260,11 @@ switch() {
             if [ -f "$thumbnail" ]; then
                 matugen_args+=(image "$thumbnail")
                 generate_colors_material_args=(--path "$thumbnail")
-                create_restore_script "$video_path"
+                if has_yin; then
+                    remove_restore
+                else
+                    create_restore_script "$video_path"
+                fi
             else
                 echo "Cannot create image to colorgen"
                 remove_restore
@@ -256,6 +276,10 @@ switch() {
             # Update wallpaper path in config
             set_wallpaper_path "$imgpath"
             remove_restore
+            # Quickshell draws still images itself; this only replaces a video still playing underneath.
+            if has_yin; then
+                set_yin_wallpaper "$imgpath"
+            fi
         fi
     fi
 
